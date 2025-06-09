@@ -1,0 +1,59 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.mysql
+*.pid
+*.seed
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# VSCode settings
+.vscode/
+
+# SSH keys
+*.pem
+*.pub
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+*.ssh
+id_rsa*
+id_ed25519*
+/.ssh/
+
+# Misc
+coverage/
+.idea/
+*.swp
+*.swo
+
+# Custom
+setup.sh
+src/controllers/token.controller.ts

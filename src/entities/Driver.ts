@@ -1,0 +1,40 @@
+import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BeforeUpdate } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+
+@Entity()
+export class Driver {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column()
+  name!: string;
+
+  @Column()
+  phoneNumber!: string;
+
+  @Column({ nullable: true })
+  email?: string;
+
+  @Column()
+  vehicleModel!: string;
+
+  @Column()
+  vehicleRegistration!: string;
+
+  @Column()
+  password!: string;
+
+  @Column({ nullable: true })
+  resetToken?: string | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  resetTokenExpiry?: Date | null;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashPassword() {
+    if (this.password && !this.password.startsWith('$2b$')) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
+  }
+}

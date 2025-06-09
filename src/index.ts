@@ -1,0 +1,37 @@
+import express from 'express';
+import { createConnection } from 'typeorm';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import orderRoutes from './routes/order.routes';
+import driverRoutes from './routes/driver.routes';
+import { generateToken } from './controllers/token.controller';
+
+const app = express();
+const port = 3000;
+
+app.use(cors());
+app.use(bodyParser.json());
+
+async function initializeDatabase() {
+  await createConnection({
+    type: 'mysql',
+    host: process.env.DATABASE_HOST || 'localhost',
+    port: Number(process.env.DATABASE_PORT) || 3306,
+    username: process.env.DATABASE_USERNAME || 'root',
+    password: process.env.DATABASE_PASSWORD || 'password',
+    database: process.env.DATABASE_NAME || 'presto_dispatch',
+    entities: ['src/entities/*.ts'],
+    synchronize: true
+  });
+}
+
+app.use('/v1/location/:locationId/orders', orderRoutes);
+app.use('/v1/drivers', driverRoutes);
+app.post('/generate-token', generateToken);
+
+async function startServer() {
+  await initializeDatabase();
+  app.listen(port, () => console.log(`Server running on http://localhost:${port}`));
+}
+
+startServer().catch(console.error);
