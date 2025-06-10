@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt';
 
 passport.use('driver-local', new LocalStrategy(
   {
-    usernameField: 'email', // or 'email' if you want
+    usernameField: 'email',
     passwordField: 'password',
   },
   async (email, password, done) => {

@@ -24,11 +24,17 @@ export class Driver {
   @Column()
   password!: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   resetToken?: string | null;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   resetTokenExpiry?: Date | null;
+
+  @Column({ unique: true })
+  colorCode!: string;
+
+  @Column({ type: 'simple-json', nullable: true })
+  restaurantIds?: string[];
 
   @BeforeInsert()
   @BeforeUpdate()
