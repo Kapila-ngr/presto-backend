@@ -154,8 +154,13 @@ export async function getOrdersByDriverId(req: Request, res: Response) {
   }
 
   const orderRepo = getRepository(Order);
+  // Exclude completed statuses
+  const completedStatuses = ['DELIVERED', 'FAILED'];
   const orders = await orderRepo.find({
-    where: { assignedCarrier: { id: driverId } },
+    where: {
+      assignedCarrier: { id: driverId },
+      orderStatus: Raw(status => `NOT (${completedStatuses.map(s => `'${s}'`).join(' OR orderStatus = ')})`)
+    },
     relations: ['assignedCarrier'],
   });
 
@@ -206,17 +211,32 @@ export async function getCompletedOrdersByDriverId(req: Request, res: Response) 
     return res.status(400).json({ code: 'INVALID_INPUT', message: 'driverId is required' });
   }
 
+  // Pagination params
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
+
   const orderRepo = getRepository(Order);
   const completedStatuses = ['DELIVERED', 'FAILED'];
-  const orders = await orderRepo.find({
+
+  const [orders, total] = await orderRepo.findAndCount({
     where: {
       assignedCarrier: { id: driverId },
       orderStatus: completedStatuses as any,
     },
     relations: ['assignedCarrier'],
+    skip,
+    take: limit,
+    order: { deliveryTime: 'DESC' }
   });
 
-  res.status(200).json(orders.map(sanitizeOrder));
+  res.status(200).json({
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+    data: orders.map(sanitizeOrder),
+  });
 }
 
 // Helper to remove password from driver object

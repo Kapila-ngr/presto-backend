@@ -33,7 +33,7 @@ export async function driverLogin(req: Request, res: Response) {
     // No expiresIn for non-expiring token
   );
 
-  res.status(200).json({ message: 'Login successful', driver: driverSafe, token });
+  res.status(200).json({ message: 'Login successful', data: { driver: driverSafe, token }});
 }
 
 // Request password reset
