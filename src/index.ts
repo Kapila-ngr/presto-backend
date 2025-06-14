@@ -5,6 +5,7 @@ import cors from 'cors';
 import orderRoutes from './routes/order.routes';
 import driverRoutes from './routes/driver.routes';
 import { generateToken } from './controllers/token.controller';
+import { subscribeToChannel, publishSampleMessage } from './services/pubsub.service';
 
 const app = express();
 const port = 3000;
@@ -25,9 +26,19 @@ async function initializeDatabase() {
   });
 }
 
-app.use('/v1/location/:locationId/orders', orderRoutes);
+app.use('/v1/orders', orderRoutes);
 app.use('/v1/drivers', driverRoutes);
 app.post('/generate-token', generateToken);
+
+// Subscribe to a test channel on server start
+// subscribeToChannel('test-channel', (message) => {
+//   console.log('Ably received (from index.ts):', message.data);
+// });
+
+// Optionally, publish a sample message after a short delay
+// setTimeout(() => {
+//   publishSampleMessage('test-channel','sample-event', 'Hello from server startup!');
+// }, 2000);
 
 async function startServer() {
   await initializeDatabase();

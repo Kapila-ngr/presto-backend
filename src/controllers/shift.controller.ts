@@ -5,6 +5,7 @@ import { Driver } from '../entities/Driver';
 import { CreateShiftDto, UpdateShiftDto } from '../dtos/shift.dto';
 import { validate } from 'class-validator';
 import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import { log } from 'console';
 
 // Create a new shift
 export async function createShift(req: Request, res: Response) {
@@ -22,15 +23,30 @@ export async function createShift(req: Request, res: Response) {
     return res.status(404).json({ code: 'DRIVER_NOT_FOUND', message: 'Driver not found' });
   }
 
-  const shift = shiftRepo.create({
+  // Check if the driver is already on shift
+  const now = new Date();
+  const existingShift = await shiftRepo.findOne({
+    where: {
+      driver: { id: dto.driverId },
+      shiftStart: LessThanOrEqual(now),
+      shiftEnd: MoreThanOrEqual(now)
+    },
+    relations: ['driver']
+  });
+  if (existingShift) {
+    return res.status(400).json({ code: 'DRIVER_ON_SHIFT', message: 'Driver is already on shift' });
+  }else {
+    const shift = shiftRepo.create({
     driver,
     shiftStart: new Date(dto.shiftStart),
     shiftEnd: new Date(dto.shiftEnd),
     restaurantId: dto.restaurantId,
   });
-
   await shiftRepo.save(shift);
   res.status(201).json(shift);
+  }
+  
+  
 }
 
 // Update an existing shift
@@ -56,9 +72,15 @@ export async function updateShift(req: Request, res: Response) {
   res.status(200).json(shift);
 }
 
-// Check if a driver is currently on shift
+
 export async function isDriverOnShift(req: Request, res: Response) {
   const driverId = req.params.driverId;
+  const driverRepo = getRepository(Driver);
+  const driver = await driverRepo.findOne({ where: { id: driverId } });
+
+  if (!driver) {
+    return res.status(404).json({ code: 'DRIVER_NOT_FOUND', message: 'Driver not found' });
+  }else {
   const now = new Date();
   const shiftRepo = getRepository(Shift);
   const onShift = await shiftRepo.findOne({
@@ -66,9 +88,10 @@ export async function isDriverOnShift(req: Request, res: Response) {
       driver: { id: driverId },
       shiftStart: LessThanOrEqual(now),
       shiftEnd: MoreThanOrEqual(now)
-    },
-    relations: ['driver']
+    }
   });
-
-  res.status(200).json({ driverId, onShift: !!onShift });
+  return res.status(200).json({
+    driverId,
+    onShift: !!onShift
+  });}
 }

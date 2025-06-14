@@ -8,6 +8,7 @@
     "debug": "NODE_OPTIONS='--inspect' ts-node src/index.ts"
   },
   "dependencies": {
+    "ably": "^2.9.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^1.19.0",
     "class-transformer": "^0.5.1",

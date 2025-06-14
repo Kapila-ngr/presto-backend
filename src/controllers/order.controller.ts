@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { getRepository, Raw } from 'typeorm';
+import { getRepository, Raw, In } from 'typeorm';
 import { Order } from '../entities/Order';
-import { CreateOrderDto, AssignOrderDto, UpdateOrderStatusDto } from '../dtos/order.dto';
+import { CreateOrderDto, AssignOrderDto, UpdateOrderStatusDto, CostingDto } from '../dtos/order.dto';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { Driver } from '../entities/Driver';
@@ -60,7 +60,6 @@ export async function assignOrder(req: Request, res: Response) {
   const { orderId, driverId } = dto;
 
   const order = await orderRepo.findOne({ where: { orderId } });
-  console.log(`Assigning order ${orderId} to driver ${driverId}`);
   if (!order) {
     return res.status(404).json({ code: 'ORDER_NOT_FOUND', message: 'Order not found' });
   }
@@ -86,15 +85,12 @@ export async function updateOrderStatus(req: Request, res: Response) {
     return res.status(400).json({ code: 'INVALID_INPUT', message: 'Invalid status data', errors });
   }
 
-  const restaurantId = req.params.locationId as string;
-  console.log(`Restaurant ID from header: ${restaurantId}`);
   const orderRepo = getRepository(Order);
 
-  // FIX: Query by orderId, then check restaurant.id in JS
+  // Query by orderId only
   const order = await orderRepo.findOne({ where: { orderId: req.params.orderId } });
-  console.log(`Updating order ${req.params.orderId} status to ${dto.orderState}`);
 
-  if (!order || order.restaurant?.id !== restaurantId) {
+  if (!order) {
     return res.status(404).json({ code: 'ORDER_NOT_FOUND', message: 'Order not found' });
   }
 
@@ -163,8 +159,7 @@ export async function getOrdersByDriverId(req: Request, res: Response) {
     },
     relations: ['assignedCarrier'],
   });
-
-  res.status(200).json(orders.map(sanitizeOrder));
+  res.status(200).json( {message: 'All inprogress orders', data:  orders.map(sanitizeOrder)});
 }
 
 // Get order by ID
@@ -222,7 +217,7 @@ export async function getCompletedOrdersByDriverId(req: Request, res: Response) 
   const [orders, total] = await orderRepo.findAndCount({
     where: {
       assignedCarrier: { id: driverId },
-      orderStatus: completedStatuses as any,
+      orderStatus: In(completedStatuses),
     },
     relations: ['assignedCarrier'],
     skip,
@@ -239,11 +234,10 @@ export async function getCompletedOrdersByDriverId(req: Request, res: Response) 
   });
 }
 
-// Helper to remove password from driver object
+// Helper to remove assignedCarrier from order object in the response
 function sanitizeOrder(order: any) {
   if (order.assignedCarrier) {
-    order.assignedCarrier = { ...order.assignedCarrier };
-    delete order.assignedCarrier.password;
+    delete order.assignedCarrier;
   }
   return order;
 }

@@ -11,6 +11,7 @@ import {
   driverLogin,
   requestPasswordReset,
   resetPassword,
+  driverLogout,
 } from '../controllers/auth.controller';
 
 import {
@@ -24,6 +25,7 @@ const router = Router();
 
 router.post('/create', createDriver);
 router.post('/login', driverLogin);   
+router.post('/logout', driverLogout);
 
 // Protected routes
 router.get('/:locationId/list', listDrivers);
@@ -35,6 +37,8 @@ router.post('/reset-password', resetPassword);
 
 router.post('/shifts', createShift);
 router.put('/shifts/:id', updateShift);
-router.get('/:locationId/:driverId/is-on-shift', isDriverOnShift);
+router.get('/shifts/:driverId', isDriverOnShift);
+
+
 
 export default router;

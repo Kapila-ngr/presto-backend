@@ -1,19 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { getRepository } from 'typeorm';
+import { DriverToken } from '../entities/DriverToken';
 
-export function driverAuthMiddleware(req: Request, res: Response, next: NextFunction) {
+export async function driverAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ code: 'UNAUTHORIZED', message: 'Missing or invalid token' });
   }
 
   const token = authHeader.split(' ')[1];
-  try {
-    const decoded = jwt.verify(token, 'your_jwt_secret'); // Use your actual secret
-    // Optionally attach driver info to req for later use
-    (req as any).driver = decoded;
-    next();
-  } catch (err) {
-    return res.status(401).json({ code: 'INVALID_TOKEN', message: 'Invalid or expired token' });
+  const driverTokenRepo = getRepository(DriverToken);
+  const tokenRecord = await driverTokenRepo.findOne({ where: { token, isActive: true } });
+  if (!tokenRecord) {
+    return res.status(401).json({ code: 'INVALID_TOKEN', message: 'Token is not active or has been logged out' });
   }
+
+  next();
 }

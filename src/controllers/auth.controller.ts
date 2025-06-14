@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { getRepository } from 'typeorm';
 import { Driver } from '../entities/Driver';
+import { DriverToken } from '../entities/DriverToken';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
@@ -32,6 +33,12 @@ export async function driverLogin(req: Request, res: Response) {
     'your_jwt_secret' // Replace with your actual secret
     // No expiresIn for non-expiring token
   );
+  const driverTokenRepo = getRepository(DriverToken);
+await driverTokenRepo.save({
+  driver,
+  token,
+  isActive: true
+});
 
   res.status(200).json({ message: 'Login successful', data: { driver: driverSafe, token }});
 }
@@ -85,4 +92,16 @@ export async function resetPassword(req: Request, res: Response) {
   await driverRepo.save(driver);
 
   res.status(200).json({ message: 'Password has been reset successfully.' });
+}
+
+// Example: Invalidate token on logout
+export async function driverLogout(req: Request, res: Response) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ code: 'UNAUTHORIZED', message: 'Missing or invalid token' });
+  }
+  const token = authHeader.split(' ')[1];
+  const driverTokenRepo = getRepository(DriverToken);
+  await driverTokenRepo.update({ token, isActive: true }, { isActive: false });
+  res.status(200).json({ message: 'Logout successful.' });
 }
