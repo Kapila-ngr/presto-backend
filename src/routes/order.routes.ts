@@ -15,7 +15,7 @@ const router = Router();
 router.post('/create',  createOrder);
 router.post('/assign',  assignOrder);
 router.put('/:orderId/status',  updateOrderStatus);
-router.get('/list',  listOrders);
+router.get('/location/:locationId/list',  listOrders);
 router.get('/:driverId',  getOrdersByDriverId);
 router.get('/:driverId/completed',  getCompletedOrdersByDriverId);
 router.get('/:orderId',  getOrderById);

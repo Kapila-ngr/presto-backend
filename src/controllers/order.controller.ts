@@ -115,6 +115,8 @@ export async function updateOrderStatus(req: Request, res: Response) {
 export async function listOrders(req: Request, res: Response) {
   const restaurantId = req.params.locationId as string;
   const orderState = req.query.orderState as string | undefined;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
   const orderRepo = getRepository(Order);
 
   const validStates = [
@@ -130,16 +132,30 @@ export async function listOrders(req: Request, res: Response) {
   ] as const;
 
   let where: any = {};
-  if (restaurantId) {
-    where['restaurant.id'] = restaurantId;
-  }
   if (orderState && validStates.includes(orderState as any)) {
     where.orderStatus = orderState as typeof validStates[number];
   }
 
-  // Add relations: ['assignedCarrier'] to include driver info
+  // Fetch all orders (optionally filtered by status)
   const orders = await orderRepo.find({ where, relations: ['assignedCarrier'] });
-  res.status(200).json(orders.map(sanitizeOrder));
+
+  // Filter by restaurantId in JS
+  const filteredOrders = restaurantId
+    ? orders.filter(order => order.restaurant && order.restaurant.id == restaurantId)
+    : orders;
+
+  // Paginate in JS
+  const total = filteredOrders.length;
+  const totalPages = Math.ceil(total / limit);
+  const paginatedOrders = filteredOrders.slice((page - 1) * limit, page * limit);
+
+  res.status(200).json({
+    page,
+    limit,
+    total,
+    totalPages,
+    data: paginatedOrders.map(sanitizeOrder),
+  });
 }
 
 // Get all orders assigned to a driver by driverId
