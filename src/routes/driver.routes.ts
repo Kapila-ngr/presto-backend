@@ -35,9 +35,9 @@ router.delete('/:id', deleteDriver);
 router.post('/forgot-password', requestPasswordReset); 
 router.post('/reset-password', resetPassword);         
 
-router.post('/shifts', createShift);
-router.put('/shifts/:id', updateShift);
-router.get('/shifts/:driverId', isDriverOnShift);
+// router.post('/shift', createShift);
+// router.put('/shift/:id', updateShift);
+// router.get('/shift/:driverId', isDriverOnShift);
 
 
 

@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import orderRoutes from './routes/order.routes';
 import driverRoutes from './routes/driver.routes';
+import shiftRoutes from './routes/shift.routes';
 import { generateToken } from './controllers/token.controller';
 import { subscribeToChannel, publishSampleMessage } from './services/pubsub.service';
 
@@ -28,6 +29,7 @@ async function initializeDatabase() {
 
 app.use('/v1/orders', orderRoutes);
 app.use('/v1/drivers', driverRoutes);
+app.use('/v1/shifts', shiftRoutes);
 app.post('/generate-token', generateToken);
 
 // Subscribe to a test channel on server start
