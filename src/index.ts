@@ -33,7 +33,7 @@ app.use('/v1/shifts', shiftRoutes);
 app.post('/generate-token', generateToken);
 
 // Subscribe to a test channel on server start
-// subscribeToChannel('test-channel', (message) => {
+// subscribeToChannel('order-36726661', (message) => {
 //   console.log('Ably received (from index.ts):', message.data);
 // });
 

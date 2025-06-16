@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authMiddleware } from '../middleware/auth';
 import {
   createDriver,
   listDrivers,
@@ -25,19 +26,15 @@ const router = Router();
 
 router.post('/create', createDriver);
 router.post('/login', driverLogin);   
-router.post('/logout', driverLogout);
+router.post('/logout', authMiddleware(['driver']), driverLogout);
 
 // Protected routes
 router.get('/:locationId/list', listDrivers);
 router.get('/:locationId/:id', getDriver);
-router.put('/:id', updateDriver);
-router.delete('/:id', deleteDriver);
+router.put('/:id', authMiddleware(['driver']), updateDriver);
+router.delete('/:id', authMiddleware(['driver']), deleteDriver);
 router.post('/forgot-password', requestPasswordReset); 
-router.post('/reset-password', resetPassword);         
-
-// router.post('/shift', createShift);
-// router.put('/shift/:id', updateShift);
-// router.get('/shift/:driverId', isDriverOnShift);
+router.post('/reset-password', resetPassword);        
 
 
 

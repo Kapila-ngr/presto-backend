@@ -14,10 +14,10 @@ const router = Router();
 
 router.post('/create',  createOrder);
 router.post('/assign',  assignOrder);
-router.put('/:orderId/status',  updateOrderStatus);
-router.get('/location/:locationId/list',  listOrders);
-router.get('/:driverId',  getOrdersByDriverId);
-router.get('/:driverId/completed',  getCompletedOrdersByDriverId);
-router.get('/:orderId',  getOrderById);
+router.put('/:orderId/status', authMiddleware(['driver']), updateOrderStatus);
+router.get('/location/:locationId/list', authMiddleware(['driver']), listOrders);
+router.get('/driver/:driverId', authMiddleware(['driver']), getOrdersByDriverId);
+router.get('/:driverId/completed',  authMiddleware(['driver']), getCompletedOrdersByDriverId);
+router.get('/order/:orderId', authMiddleware(['driver']),  getOrderById);
 
 export default router;

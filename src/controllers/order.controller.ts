@@ -5,6 +5,21 @@ import { CreateOrderDto, AssignOrderDto, UpdateOrderStatusDto, CostingDto } from
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { Driver } from '../entities/Driver';
+import { publishSampleMessage } from '../services/pubsub.service';
+
+/**
+ * Publishes a message to the restaurant's order channel.
+ * @param restaurantId The restaurant ID (string)
+ * @param event The event name (string)
+ * @param payload The payload to send (any)
+ */
+export async function publishOrderEvent(restaurantId: string, event: string, payload: any) {
+  if (!restaurantId || !event || !payload) {
+    throw new Error('restaurantId, event, and payload are required');
+  }
+  const channelName = `order-${restaurantId}`;
+  await publishSampleMessage(channelName, event, JSON.stringify(payload));
+}
 
 // Create a new order
 export async function createOrder(req: Request, res: Response) {
@@ -42,7 +57,8 @@ export async function createOrder(req: Request, res: Response) {
   });
 
   await orderRepo.save(order);
-  return res.status(201).json(order);
+  publishOrderEvent(order.restaurant.id, 'ORDER_CREATED',order);
+  return res.status(201).json({ message: 'Order created successfully', data: sanitizeOrder(order.orderId) });
 }
 
 // Assign a driver to an order
@@ -74,7 +90,7 @@ export async function assignOrder(req: Request, res: Response) {
   if (order) order.assignedTime = new Date();
   await orderRepo.save(order);
 
-  res.status(200).json(sanitizeOrder(order));
+  res.status(200).json({ message: 'Order assigned successfully', data: sanitizeOrder(order.orderId) });
 }
 
 // Update order status
@@ -108,7 +124,8 @@ export async function updateOrderStatus(req: Request, res: Response) {
   }
 
   await orderRepo.save(order);
-  res.status(200).json(sanitizeOrder(order));
+  publishOrderEvent(order.restaurant.id, 'ORDER_STATUS_UPDATED', order);
+  res.status(200).json({ message: 'Order status updated successfully', data: sanitizeOrder(order.orderId) });
 }
 
 // List orders with optional filtering by restaurant and order status
@@ -175,7 +192,7 @@ export async function getOrdersByDriverId(req: Request, res: Response) {
     },
     relations: ['assignedCarrier'],
   });
-  res.status(200).json( {message: 'All inprogress orders', data:  orders.map(sanitizeOrder)});
+  res.status(200).json({ message: 'All inprogress orders', data: orders.map(sanitizeOrder) });
 }
 
 // Get order by ID
@@ -195,7 +212,7 @@ export async function getOrderById(req: Request, res: Response) {
     return res.status(404).json({ code: 'ORDER_NOT_FOUND', message: 'Order not found' });
   }
 
-  res.status(200).json(sanitizeOrder(order));
+  res.status(200).json({ message: 'Order fetched successfully', data: sanitizeOrder(order) });
 }
 
 // Get all orders for a restaurant by restaurantId
@@ -212,7 +229,7 @@ export async function getOrdersByRestaurantId(req: Request, res: Response) {
     .filter(order => order.restaurant && order.restaurant.id == restaurantId)
     .map(sanitizeOrder);
 
-  res.status(200).json(filteredOrders);
+  res.status(200).json({ message: 'Orders fetched successfully', data: filteredOrders });
 }
 
 // Get all completed orders assigned to a driver by driverId
@@ -250,6 +267,24 @@ export async function getCompletedOrdersByDriverId(req: Request, res: Response) 
   });
 }
 
+// Publish order message to pub/sub
+export async function publishOrderMessage(req: Request, res: Response) {
+  const { restaurantId, event, payload } = req.body;
+
+  if (!restaurantId || !event || !payload) {
+    return res.status(400).json({ message: 'restaurantId, event, and payload are required', data: {} });
+  }
+
+  const channelName = `orders-${restaurantId}`;
+
+  try {
+    await publishSampleMessage(channelName, event, payload);
+    return res.status(200).json({ message: 'Message published successfully', data: { channelName, event, payload } });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to publish message', data: { error: err } });
+  }
+}
+
 // Helper to remove assignedCarrier from order object in the response
 function sanitizeOrder(order: any) {
   if (order.assignedCarrier) {
@@ -257,3 +292,5 @@ function sanitizeOrder(order: any) {
   }
   return order;
 }
+
+

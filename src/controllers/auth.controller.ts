@@ -29,7 +29,7 @@ export async function driverLogin(req: Request, res: Response) {
 
   // Generate a non-expiring token (for demo; in production, set an expiry)
   const token = jwt.sign(
-    { id: driver.id, email: driver.email },
+    { id: driver.id, email: driver.email, role: 'driver' },
     'your_jwt_secret' // Replace with your actual secret
     // No expiresIn for non-expiring token
   );
