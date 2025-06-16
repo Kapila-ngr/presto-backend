@@ -18,7 +18,7 @@ export async function publishOrderEvent(restaurantId: string, event: string, pay
     throw new Error('restaurantId, event, and payload are required');
   }
   const channelName = `order-${restaurantId}`;
-  await publishSampleMessage(channelName, event, JSON.stringify(payload));
+  await publishSampleMessage(channelName, event, payload);
 }
 
 // Create a new order
@@ -192,7 +192,7 @@ export async function getOrdersByDriverId(req: Request, res: Response) {
     },
     relations: ['assignedCarrier'],
   });
-  res.status(200).json({ message: 'All inprogress orders', data: orders.map(sanitizeOrder) });
+  res.status(200).json({ message: 'All inprogress orders', data:{ orders : orders.map(sanitizeOrder)}  });
 }
 
 // Get order by ID
