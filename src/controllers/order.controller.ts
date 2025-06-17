@@ -259,11 +259,11 @@ export async function getCompletedOrdersByDriverId(req: Request, res: Response) 
   });
 
   res.status(200).json({
-    page,
+    data: { page,
     limit,
     total,
     totalPages: Math.ceil(total / limit),
-    data: { orders : orders.map(sanitizeOrder)},
+    orders : orders.map(sanitizeOrder)},
   });
 }
 
