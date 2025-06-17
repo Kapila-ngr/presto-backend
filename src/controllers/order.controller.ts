@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getRepository, Raw, In } from 'typeorm';
+import { getRepository, Raw, In, Not } from 'typeorm';
 import { Order } from '../entities/Order';
 import { CreateOrderDto, AssignOrderDto, UpdateOrderStatusDto, CostingDto } from '../dtos/order.dto';
 import { validate } from 'class-validator';
@@ -188,7 +188,7 @@ export async function getOrdersByDriverId(req: Request, res: Response) {
   const orders = await orderRepo.find({
     where: {
       assignedCarrier: { id: driverId },
-      orderStatus: Raw(status => `NOT (${completedStatuses.map(s => `'${s}'`).join(' OR orderStatus = ')})`)
+      orderStatus: Not(In(completedStatuses)),
     },
     relations: ['assignedCarrier'],
   });
