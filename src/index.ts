@@ -5,7 +5,7 @@ import cors from 'cors';
 import orderRoutes from './routes/order.routes';
 import driverRoutes from './routes/driver.routes';
 import shiftRoutes from './routes/shift.routes';
-import { generateToken } from './controllers/token.controller';
+import { generateToken, invalidateIdToken } from './controllers/token.controller';
 import { subscribeToChannel, publishSampleMessage } from './services/pubsub.service';
 
 const app = express();
@@ -30,7 +30,8 @@ async function initializeDatabase() {
 app.use('/v1/orders', orderRoutes);
 app.use('/v1/drivers', driverRoutes);
 app.use('/v1/shifts', shiftRoutes);
-app.post('/generate-token', generateToken);
+app.post('/v1/tokens/generate-token', generateToken);
+app.post('/v1/tokens/invalidate', invalidateIdToken);
 
 // Subscribe to a test channel on server start
 // subscribeToChannel('order-36726661', (message) => {

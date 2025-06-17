@@ -17,7 +17,7 @@ router.post('/assign',  assignOrder);
 router.put('/:orderId/status', authMiddleware(['driver']), updateOrderStatus);
 router.get('/location/:locationId/list', listOrders);
 router.get('/driver/:driverId', authMiddleware(['driver']), getOrdersByDriverId);
-router.get('/:driverId/completed',  authMiddleware(['driver']), getCompletedOrdersByDriverId);
+router.get('/:driverId/completed',  authMiddleware(['driver','app']), getCompletedOrdersByDriverId);
 router.get('/order/:orderId', authMiddleware(['driver']),  getOrderById);
 
 export default router;
