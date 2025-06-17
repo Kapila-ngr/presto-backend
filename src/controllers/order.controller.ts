@@ -263,7 +263,7 @@ export async function getCompletedOrdersByDriverId(req: Request, res: Response) 
     limit,
     total,
     totalPages: Math.ceil(total / limit),
-    data: orders.map(sanitizeOrder),
+    data: { orders : orders.map(sanitizeOrder)},
   });
 }
 
