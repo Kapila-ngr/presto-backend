@@ -5,7 +5,9 @@ import { CreateOrderDto, AssignOrderDto, UpdateOrderStatusDto, CostingDto } from
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { Driver } from '../entities/Driver';
-import { publishSampleMessage } from '../services/pubsub.service';
+import { publishMessages } from '../services/pubsub.service';
+import { updateDriverStatus } from '../services/drivers.service';
+import { Console } from 'console';
 
 /**
  * Publishes a message to the restaurant's order channel.
@@ -18,7 +20,7 @@ export async function publishOrderEvent(restaurantId: string, event: string, pay
     throw new Error('restaurantId, event, and payload are required');
   }
   const channelName = `order-${restaurantId}`;
-  await publishSampleMessage(channelName, event, payload);
+  await publishMessages(channelName, event, payload);
 }
 
 // Create a new order
@@ -104,7 +106,7 @@ export async function updateOrderStatus(req: Request, res: Response) {
   const orderRepo = getRepository(Order);
 
   // Query by orderId only
-  const order = await orderRepo.findOne({ where: { orderId: req.params.orderId } });
+  const order = await orderRepo.findOne({ where: { orderId: req.params.orderId }, relations: ['assignedCarrier'] });
 
   if (!order) {
     return res.status(404).json({ code: 'ORDER_NOT_FOUND', message: 'Order not found' });
@@ -112,14 +114,32 @@ export async function updateOrderStatus(req: Request, res: Response) {
 
   order.orderStatus = dto.orderState;
   if (order) {
-    if (dto.orderState === 'PICKED_UP') order.pickedUpTime = new Date();
-    else if (dto.orderState === 'EN_ROUTE') order.startTime = new Date();
-    else if (dto.orderState === 'ARRIVED_AT_DELIVERY') order.arrivedTime = new Date();
-    else if (dto.orderState === 'DELIVERED') {
+    if (dto.orderState === 'PICKED_UP') {
+      order.pickedUpTime = new Date();
+      if (order.assignedCarrier?.id) {
+        await updateDriverStatus(order.restaurant.id, order.assignedCarrier.id, 'ON_DELIVERY');
+      }
+    } else if (dto.orderState === 'EN_ROUTE') {
+      order.startTime = new Date();
+      if (order.assignedCarrier?.id) {
+        await updateDriverStatus(order.restaurant.id, order.assignedCarrier.id, 'EN_ROUTE');
+      }
+    } else if (dto.orderState === 'ARRIVED_AT_DELIVERY') {
+      order.arrivedTime = new Date();
+      if (order.assignedCarrier?.id) {
+        await updateDriverStatus(order.restaurant.id, order.assignedCarrier.id, 'ARRIVED_AT_DELIVERY');
+      }
+    } else if (dto.orderState === 'DELIVERED') {
       order.deliveryTime = new Date();
       order.proofOfDelivery = dto.proofOfDelivery;
+      if (order.assignedCarrier?.id) {
+        await updateDriverStatus(order.restaurant.id, order.assignedCarrier.id, 'AVAILABLE');
+      }
     } else if (dto.orderState === 'FAILED') {
       order.proofOfDelivery = dto.proofOfDelivery;
+      if (order.assignedCarrier?.id) {
+        await updateDriverStatus(order.restaurant.id, order.assignedCarrier.id, 'AVAILABLE');
+      }
     }
   }
 
@@ -278,7 +298,7 @@ export async function publishOrderMessage(req: Request, res: Response) {
   const channelName = `orders-${restaurantId}`;
 
   try {
-    await publishSampleMessage(channelName, event, payload);
+    await publishMessages(channelName, event, payload);
     return res.status(200).json({ message: 'Message published successfully', data: { channelName, event, payload } });
   } catch (err) {
     return res.status(500).json({ message: 'Failed to publish message', data: { error: err } });

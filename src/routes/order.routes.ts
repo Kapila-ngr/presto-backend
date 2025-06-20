@@ -14,7 +14,7 @@ const router = Router();
 
 router.post('/create',  createOrder);
 router.post('/assign',  assignOrder);
-router.put('/:orderId/status', authMiddleware(['driver']), updateOrderStatus);
+router.put('/:orderId/status', updateOrderStatus);
 router.get('/location/:locationId/list', listOrders);
 router.get('/driver/:driverId', authMiddleware(['driver']), getOrdersByDriverId);
 router.get('/:driverId/completed',  authMiddleware(['driver','app']), getCompletedOrdersByDriverId);

@@ -6,7 +6,6 @@ import orderRoutes from './routes/order.routes';
 import driverRoutes from './routes/driver.routes';
 import shiftRoutes from './routes/shift.routes';
 import { generateToken, invalidateIdToken } from './controllers/token.controller';
-import { subscribeToChannel, publishSampleMessage } from './services/pubsub.service';
 
 const app = express();
 const port = 3000;

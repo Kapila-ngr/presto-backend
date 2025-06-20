@@ -36,6 +36,21 @@ export class Driver {
   @Column({ type: 'simple-json', nullable: true })
   restaurantIds?: string[];
 
+  @Column({
+    type: 'enum',
+    enum: [
+      'ON_DELIVERY',
+      'EN_ROUTE',
+      'ARRIVED_AT_DELIVERY',
+      'AVAILABLE'
+    ],
+    nullable: true
+  })
+  status?: 'ON_DELIVERY' | 'EN_ROUTE' | 'ARRIVED_AT_DELIVERY' | 'AVAILABLE';
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  deviceId?: string;
+
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {

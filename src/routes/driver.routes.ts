@@ -6,6 +6,7 @@ import {
   getDriver,
   updateDriver,
   deleteDriver,
+  addRestaurantToDriver,
 } from '../controllers/driver.controller';
 
 import {
@@ -34,7 +35,8 @@ router.get('/:locationId/:id', getDriver);
 router.put('/:id', authMiddleware(['driver']), updateDriver);
 router.delete('/:id', authMiddleware(['driver']), deleteDriver);
 router.post('/forgot-password', requestPasswordReset); 
-router.post('/reset-password', resetPassword);        
+router.post('/reset-password', resetPassword);  
+router.post('/:id/restaurant', authMiddleware(['app']), addRestaurantToDriver);      
 
 
 

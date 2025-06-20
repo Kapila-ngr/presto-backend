@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, MinLength, IsEnum } from 'class-validator';
 
 export class CreateDriverDto {
   @IsString()
@@ -25,6 +25,19 @@ export class CreateDriverDto {
   @IsNotEmpty()
   @MinLength(6)
   password!: string;
+
+  @IsEnum([
+    'ON_DELIVERY',
+    'EN_ROUTE',
+    'ARRIVED_AT_DELIVERY',
+    'AVAILABLE'
+  ])
+  @IsOptional()
+  status?: 'ON_DELIVERY' | 'EN_ROUTE' | 'ARRIVED_AT_DELIVERY' | 'AVAILABLE';
+
+  @IsString()
+  @IsOptional()
+  deviceId?: string;
 }
 
 export class UpdateDriverDto {
@@ -52,4 +65,21 @@ export class UpdateDriverDto {
   @IsOptional()
   @MinLength(6)
   password?: string;
+
+  @IsEnum([
+    'ASSIGNED',
+    'ACCEPTED',
+    'REJECTED',
+    'PICKED_UP',
+    'EN_ROUTE',
+    'ARRIVED_AT_DELIVERY',
+    'DELIVERED',
+    'FAILED'
+  ])
+  @IsOptional()
+  status?: 'ASSIGNED' | 'ACCEPTED' | 'REJECTED' | 'PICKED_UP' | 'EN_ROUTE' | 'ARRIVED_AT_DELIVERY' | 'DELIVERED' | 'FAILED';
+
+  @IsString()
+  @IsOptional()
+  deviceId?: string;
 }

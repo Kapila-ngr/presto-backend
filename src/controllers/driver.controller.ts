@@ -3,7 +3,7 @@ import { getRepository } from 'typeorm';
 import { Driver } from '../entities/Driver';
 import { CreateDriverDto, UpdateDriverDto } from '../dtos/driver.dto';
 import { validate } from 'class-validator';
-import { publishSampleMessage } from '../services/pubsub.service';
+import { publishMessages } from '../services/pubsub.service';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
@@ -19,7 +19,7 @@ export async function publishDriverEvent(driverId: string, event: string, payloa
     throw new Error('restaurantId, event, and payload are required');
   }
   const channelName = `driver-${driverId}`;
-  await publishSampleMessage(channelName, event, JSON.stringify(payload));
+  await publishMessages(channelName, event, JSON.stringify(payload));
 }
 
 // Create a new driver
@@ -37,8 +37,16 @@ export async function createDriver(req: Request, res: Response) {
 
 // Get all drivers
 export async function listDrivers(req: Request, res: Response) {
+  const restaurantId = req.params.locationId;
   const driverRepo = getRepository(Driver);
-  const drivers = await driverRepo.find();
+  let drivers = await driverRepo.find();
+
+  if (restaurantId) {
+    drivers = drivers.filter(d =>
+      Array.isArray(d.restaurantIds) && d.restaurantIds.includes(restaurantId)
+    );
+  }
+
   res.status(200).json(drivers.map(d => ({ ...d, password: undefined })));
 }
 
