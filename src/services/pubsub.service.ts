@@ -17,7 +17,7 @@ export function subscribeToChannel(channelName: string, callback: (message: any)
 export function publishMessages(channelName: string, event: string, message: string) {
   return new Promise<void>((resolve, reject) => {
     const channel = ably.channels.get(channelName);
-    channel.publish(event, { text: message })
+    channel.publish(event, { message })
       .then(() => {
         resolve();
       })
